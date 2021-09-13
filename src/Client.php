@@ -16,10 +16,14 @@ class Client {
     /** @var void */
     protected $accessToken;
 
+    protected $managedIdentityClientId;
+
     /**
      * Client constructor
      */
-    public function __construct() {
+    public function __construct($managedIdentityClientId) {
+        $this->managedIdentityClientId = $managedIdentityClientId;
+
         $this->client = new \GuzzleHttp\Client();
         $this->accessToken = $this->getAccessToken();
     }
@@ -68,6 +72,11 @@ class Client {
         $resource = 'https://vault.azure.net';
 
         $endpoint = Url::fromString($endpoint)->withQueryParameter('resource', $resource);
+
+        if (isset($this->managedIdentityClientId)) {
+            $endpoint = Url::fromString($endpoint)->withQueryParameter('client_id', $this->managedIdentityClientId);
+        }
+
         return 'Bearer ' . $this->get($endpoint, $idHeaderValue, $idHeaderName, self::OAUTH_API_VERSION)->access_token;
     }
 
