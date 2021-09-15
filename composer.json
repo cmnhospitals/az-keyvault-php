@@ -1,5 +1,5 @@
 {
-  "name": "wapacro/az-keyvault-php",
+  "name": "cmnhospitals/az-keyvault-php",
   "type": "library",
   "description": "PHP Library to work with Azure KeyVault using managed identity",
   "keywords": [
@@ -7,14 +7,8 @@
     "keyvault",
     "secret"
   ],
-  "homepage": "https://github.com/wapacro/az-keyvault-php",
+  "homepage": "https://github.com/cmnhospitals/az-keyvault-php",
   "license": "MIT",
-  "authors": [
-    {
-      "name": "Roman Ackermann",
-      "homepage": "https://github.com/wapacro"
-    }
-  ],
   "require": {
     "guzzlehttp/guzzle": "^7.0",
     "ext-json": "*",
