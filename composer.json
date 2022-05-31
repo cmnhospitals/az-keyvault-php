@@ -16,7 +16,7 @@
     "spatie/url": "^1.3",
     "web-token/jwt-core": "^2.0",
     "brick/math": "^0.9.1",
-    "cache/filesystem-adapter": "^1.2"
+    "cache/apcu-adapter": "^1.2"
   },
   "autoload": {
     "psr-4": {

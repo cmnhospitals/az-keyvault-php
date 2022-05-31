@@ -11,9 +11,7 @@ use AzKeyVault\Responses\Secret\SecretEntity;
 use AzKeyVault\Responses\Secret\SecretVersionEntity;
 use AzKeyVault\Responses\Secret\SecretAttributeEntity;
 use AzKeyVault\Responses\Secret\SecretVersionRepository;
-use League\Flysystem\Adapter\Local;
-use League\Flysystem\Filesystem;
-use Cache\Adapter\Filesystem\FilesystemCachePool;
+use Cache\Adapter\Apcu\ApcuCachePool;
 
 class Secret extends Vault
 {
@@ -62,10 +60,7 @@ class Secret extends Vault
     public function getSecret($secret, string $secretVersion = null)
     {
         // Set cache location
-        $filesystemAdapter = new Local(dirname(__DIR__, 1) . '/');
-        $filesystem        = new Filesystem($filesystemAdapter);
-
-        $cache = new FilesystemCachePool($filesystem);
+        $cache = new ApcuCachePool();
 
         if ($secret instanceof SecretVersionEntity && !$secretVersion) {
             $secretVersion = $secret->id;
