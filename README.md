@@ -88,9 +88,9 @@ Get started in three simple steps!
 *Note:* `KeyUtil` supports RSA and EC keys
 
 ## App Service Setup
-In order for caching to work the APCU extension needs to be installed on the app service. The `setup.sh.template` file contains all the logic to set APCU up. Add `setup.sh.template` to `/home/site/wwwroot` on the app service. If the App Service uses > PHP 8 then uncomment the nginx line in `setup.sh.template` and point it towards the necessary nginx conf and rename the file to `setup.sh`. If the app service is running < PHP 8 then simply rename the file to `setup.sh`. 
+In order for caching to work the APCU extension needs to be installed on the app service. The `startup.sh.template` file contains all the logic to set APCU up. Add `startup.sh.template` to `/home/site/wwwroot` on the app service. If the App Service uses > PHP 8 then uncomment the nginx line in `startup.sh.template` and point it towards the necessary nginx conf and rename the file to `startup.sh`. If the app service is running < PHP 8 then simply rename the file to `startup.sh`. 
 
-Navigate to the `Configuration` blade for the app service in the Azure Portal. Add `PHP_INI_SCAN_DIR = /usr/local/etc/php/conf.d:/home/site/ini` in the `Application setting` tab and `/home/site/wwwroot/setup.sh` to the `Startup Command` in the `General settings` tab.
+Navigate to the `Configuration` blade for the app service in the Azure Portal. Add `PHP_INI_SCAN_DIR = /usr/local/etc/php/conf.d:/home/site/ini` in the `Application setting` tab and `/home/site/wwwroot/startup.sh` to the `Startup Command` in the `General settings` tab.
 
 This will install APCU and allow PHP to discover and use it. 
 
