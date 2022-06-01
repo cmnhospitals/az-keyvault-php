@@ -67,12 +67,14 @@ class Secret extends Vault
             $secret = $secret->name;
         }
 
+        $wordpressSecretVersion = $_ENV['WORDPRESS_SECRET_VERSION'] ?? '';
+
         // Retrieve the cache item
-        $secret_cache = $cache->getItem($secret);
+        $secretCache = $cache->getItem($secret . '-' . $wordpressSecretVersion);
 
         // Check if cache is hit and if we can return early
-        if ($secret_cache->isHit()) {
-            return $secret_cache->get();
+        if ($secretCache->isHit()) {
+            return $secretCache->get();
         }
 
         // Get the secrets from key vault
@@ -85,7 +87,7 @@ class Secret extends Vault
         }
 
         // Create the SecretEntity
-        $secret_entity = new SecretEntity(
+        $secretEntity = new SecretEntity(
             $secret,
             $secretVersion,
             $response->value,
@@ -102,11 +104,11 @@ class Secret extends Vault
         );
 
         // Set the secret to expire in one day and store it in cache
-        $secret_cache->expiresAt(new \DateTime('tomorrow'));
-        $secret_cache->set($secret_entity);
-        $cache->save($secret_cache);
+        $secretCache->expiresAt(new \DateTime('next month'));
+        $secretCache->set($secretEntity);
+        $cache->save($secretCache);
 
-        return $secret_entity;
+        return $secretEntity;
     }
 
     /**

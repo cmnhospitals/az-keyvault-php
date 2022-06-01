@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Copy custom nginx file and restart the service. This only applies to app services running > php 8.0 
-#cp site_nginx_conf /etc/nginx/sites-enabled/default; service nginx restart
+# cp site_nginx_conf /etc/nginx/sites-enabled/default; service nginx restart
 
 # Only install APCU if it isn't already installed
 if [ ! -f "/home/site/wwwroot/bin/apcu.so" ]; then
