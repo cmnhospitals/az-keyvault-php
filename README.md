@@ -92,7 +92,10 @@ In order for caching to work the APCU extension needs to be installed on the app
 
 Navigate to the `Configuration` blade for the app service in the Azure Portal. Add `PHP_INI_SCAN_DIR = /usr/local/etc/php/conf.d:/home/site/ini` in the `Application setting` tab and `/home/site/wwwroot/startup.sh` to the `Startup Command` in the `General settings` tab.
 
-This will install APCU and allow PHP to discover and use it. 
+This will install APCU and allow PHP to discover and use it.
+
+## Wordpress Secret Version
+The secret cache can be invalidated by going to the `Configuration` blade for the app service. Navigate to the `Application setting` tab and add `WORDPRESS_SECRET_VERSION` as a config property and set the value to any string. Any time that value is modified the cache will be invalidated and the secrets will be re-fetched from the API. This isn't required and if left off, the cache will still work and expires every 30 days.
 
 ## Planned features
 - Accessing certificates
