@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# Copy custom nginx file and restart the service. This only applies to app services running > php 8.0 
+# cp site_nginx_conf /etc/nginx/sites-enabled/default; service nginx restart
+
+# Only install APCU if it isn't already installed
+if [ ! -f "/home/site/wwwroot/bin/apcu.so" ]; then
+    echo "Installing APCU"
+    # Create a temporary pear folder
+    mkdir -p /tmp/pear/temp
+    cd /tmp/pear/temp
+
+    # Use PECL to download and build apcu
+    pecl bundle apcu
+    cd apcu
+    phpize
+    ./configure
+    make
+
+    # Create bin folder and copy apcu.so to it
+    mkdir -p /home/site/wwwroot/bin
+    cp /tmp/pear/temp/apcu/modules/apcu.so /home/site/wwwroot/bin
+
+    # Create custom ini folder and add apcu.ini
+    mkdir -p /home/site/ini
+    echo "extension=/home/site/wwwroot/bin/apcu.so" > /home/site/ini/apcu.ini
+fi;

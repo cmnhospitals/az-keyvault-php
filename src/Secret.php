@@ -11,14 +11,17 @@ use AzKeyVault\Responses\Secret\SecretEntity;
 use AzKeyVault\Responses\Secret\SecretVersionEntity;
 use AzKeyVault\Responses\Secret\SecretAttributeEntity;
 use AzKeyVault\Responses\Secret\SecretVersionRepository;
+use Cache\Adapter\Apcu\ApcuCachePool;
 
-class Secret extends Vault {
+class Secret extends Vault
+{
     /**
      * Returns all versions for given secret
      * @param string $secretName
      * @return SecretVersionRepository
      */
-    public function getSecretVersions(string $secretName) {
+    public function getSecretVersions(string $secretName)
+    {
         $endpoint = Url::fromString($this->vaultUrl)->withPath(sprintf('/secrets/%s/versions', $secretName));
         $response = $this->client->get($endpoint);
         $secretVersionRepository = new SecretVersionRepository();
@@ -54,12 +57,27 @@ class Secret extends Vault {
      * @param string|null $secretVersion
      * @return SecretEntity
      */
-    public function getSecret($secret, string $secretVersion = null) {
+    public function getSecret($secret, string $secretVersion = null)
+    {
+        // Set cache location
+        $cache = new ApcuCachePool();
+
         if ($secret instanceof SecretVersionEntity && !$secretVersion) {
             $secretVersion = $secret->id;
             $secret = $secret->name;
         }
 
+        $wordpressSecretVersion = $_ENV['WORDPRESS_SECRET_VERSION'] ?? '';
+
+        // Retrieve the cache item
+        $secretCache = $cache->getItem($secret . '-' . $wordpressSecretVersion);
+
+        // Check if cache is hit and if we can return early
+        if ($secretCache->isHit()) {
+            return $secretCache->get();
+        }
+
+        // Get the secrets from key vault
         $endpoint = Url::fromString($this->vaultUrl)->withPath(sprintf('/secrets/%s/%s', $secret, $secretVersion));
         $response = $this->client->get($endpoint);
 
@@ -68,7 +86,8 @@ class Secret extends Vault {
             $secretVersion = Url::fromString($response->id)->getLastSegment();
         }
 
-        return new SecretEntity(
+        // Create the SecretEntity
+        $secretEntity = new SecretEntity(
             $secret,
             $secretVersion,
             $response->value,
@@ -83,6 +102,13 @@ class Secret extends Vault {
             ),
             $response->contentType ?? null,
         );
+
+        // Set the secret to expire in one day and store it in cache
+        $secretCache->expiresAt(new \DateTime('next month'));
+        $secretCache->set($secretEntity);
+        $cache->save($secretCache);
+
+        return $secretEntity;
     }
 
     /**
@@ -90,7 +116,8 @@ class Secret extends Vault {
      * @param string|null $nextLink
      * @return IdRepository
      */
-    public function getSecrets(string $nextLink = null): IdRepository {
+    public function getSecrets(string $nextLink = null): IdRepository
+    {
         // Handle the nextLink paging
         // https://docs.microsoft.com/en-us/rest/api/azure/#async-operations-throttling-and-paging
         if ($nextLink !== null) {
@@ -125,7 +152,7 @@ class Secret extends Vault {
 
     /**
      * Sets a secret in a specified key vault.
-	 * If the named secret already exists, Azure Key Vault creates a new version of that secret.
+     * If the named secret already exists, Azure Key Vault creates a new version of that secret.
      * @param string $secretName
      * @param string $value
      * @param SecretAttributeEntity|null $secretAttributes
@@ -133,18 +160,19 @@ class Secret extends Vault {
      * @param array|null $tags
      * @return SecretEntity
      */
-    public function setSecret(string $secretName, string $value, $secretAttributes = null, string $contentType = null, array $tags = null) {
+    public function setSecret(string $secretName, string $value, $secretAttributes = null, string $contentType = null, array $tags = null)
+    {
         $endpoint = Url::fromString($this->vaultUrl)->withPath(sprintf('/secrets/%s', $secretName));
         $body = ['value' => $value];
-        if ($secretAttributes instanceOf SecretAttributeEntity) {
-			$body['attributes'] = $secretAttributes;
-		}
+        if ($secretAttributes instanceof SecretAttributeEntity) {
+            $body['attributes'] = $secretAttributes;
+        }
         if (!$contentType) {
-			$body['contentType'] = $contentType;
-		}
+            $body['contentType'] = $contentType;
+        }
         if (!$tags) {
-			$body['tags'] = $tags;
-		}
+            $body['tags'] = $tags;
+        }
         $response = $this->client->post($endpoint, $body);
 
         $secretVersion = Url::fromString($response->id)->getLastSegment();
